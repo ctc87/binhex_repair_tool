@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+   <record id="repair_binhex_view_form" model="ir.ui.view">
+        <field name="name">repair.binhex.view.form</field>
+        <field name="model">repair.order</field>
+        <field name="inherit_id" ref="repair.view_repair_order_form"/>
+        <field name="arch" type="xml">
+            <data>
+                <xpath expr="//div[@name='button_box']" position="inside">
+                    <button class="oe_stat_button" name="open_tree_view" type="object" icon="fa-shopping-cart"  attrs="{'invisible': [('picking_order_count','=', 0)]}">
+                            <field string="Pickings" name="picking_order_count" widget="statinfo"/>
+                    </button>
+                </xpath>
+
+                <xpath expr="//field[@name='quotation_notes']" position="after">
+                    <field name="picking_notes" placeholder="Add stock picking notes..."/>
+                </xpath>
+
+                <xpath expr="//button[@name='print_repair_order']" position="after">
+                    <button name="print_repair_label"  string="Print Label" type="object"/>
+                </xpath>
+
+                <xpath expr="//page[3]" position="after">
+                    <page string="Signature">
+                        <field name="picking_ids" attrs="{'invisible': True}"/>
+                        <field name="signature" widget="signature" />
+                    </page>
+                </xpath>
+            </data>
+        </field>
+    </record>
+
+</odoo>
+

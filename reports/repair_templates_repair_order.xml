@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+<template id="report_label">
+    <t t-set="o" t-value="doc"/>
+        <t t-set="o" t-value="o.with_context(lang=o.partner_id.lang)" />
+        <div>Ref: <span t-field="o.name"/></div>
+        <div>Client: <span t-field="o.partner_id"/></div>
+        <div>Repair product: <span t-field="o.product_id"/></div>
+        <div t-if="o.date_in">In date: <span t-field="o.date_in"/></div>
+        <div t-if="o.signature">
+        Signature:
+        <img
+            t-attf-src="data:image/*;base64,{{o.signature}}"
+            t-att-alt="signature"
+            />
+        </div>
+</template>
+
+<template id="report_label2">
+    <t t-call="web.html_container">
+        <t t-foreach="docs" t-as="doc">
+            <t t-call="binhex_repair_tool.report_label" t-lang="doc.partner_id.lang"/>
+        </t>
+    </t>
+</template>
+
+<template id="report_piking_signature" inherit_id="stock.report_picking">
+            <xpath expr="//p[@t-field='o.note']" position="after">
+                <div t-if="o.signature">
+                    Signature:
+                    <img
+                        t-attf-src="data:image/*;base64,{{o.signature}}"
+                        t-att-alt="signature"
+                        />
+                </div>
+            </xpath>
+</template>
+</data>
+</odoo>
