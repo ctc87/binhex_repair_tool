@@ -1,5 +1,5 @@
 {
-    'name': 'Repair modification for stock operations',
+    'name': 'Repair modification to repair external products',
     'category': 'Add stock operations in repair tool in Odoo to repair external products.',
     'summary': 'Add stock operations in repair tool in Odoo to repair external products.',
     'price': 30,
