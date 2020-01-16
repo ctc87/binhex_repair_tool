@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+<template id="report_label">
+    <t t-set="o" t-value="doc"/>
+        <t t-set="o" t-value="o.with_context(lang=o.partner_id.lang)" />
+        <div>Ref: <span t-field="o.name"/></div>
+        <div>Client: <span t-field="o.partner_id"/></div>
+        <div>Repair product: <span t-field="o.product_id"/></div>
+        <div t-if="o.date_in">In date: <span t-field="o.date_in"/></div>
+        <div t-if="o.signature">
+        Signature:
+        <img
+            t-attf-src="data:image/*;base64,{{o.signature}}"
+            t-att-alt="signature"
+            />
+        </div>
+</template>
+
+<template id="report_label2">
+    <t t-call="web.html_container">
+        <t t-foreach="docs" t-as="doc">
+            <t t-call="binhex_repair_tool.report_label" t-lang="doc.partner_id.lang"/>
+        </t>
+    </t>
+</template>
+
+<template id="report_piking_signature" inherit_id="stock.report_picking">
+            <xpath expr="//p[@t-field='o.note']" position="after">
+                <div t-if="o.estado_articulo">
+                    <b>Estado del artículo:</b><br/> <span t-field="o.estado_articulo"/>
+                </div>
+            
+                <div t-if="o.motivo">
+                    <b>Motivo de la reparación:</b><br/> <span t-field="o.motivo"/>
+                </div>
+            
+                <div t-if="o.signature">
+                    <b>Conforme cliente:</b>
+                    <img
+                        t-attf-src="data:image/*;base64,{{o.signature}}"
+                        t-att-alt="signature"
+                        />
+                </div>
+            </xpath>
+
+            
+            <xpath expr="//span[@t-field='o.state']" position="replace">
+                <span t-if="o.r_in"><span>Recogido</span></span>
+                <span t-if="o.r_out"><span>Entregado</span></span>
+                <span t-if="not o.r_in and not o.r_out"><span t-field="o.state"/></span>
+            </xpath>
+
+            
+            <xpath expr="//div[@class='col-5 offset-1']" position="replace">
+                <t t-if="o.r_in or o.r_out">
+                    <div class="col-5 offset-1">
+                        <div t-if="o.picking_type_id.code=='incoming' and o.partner_id">
+                            <span><strong>Vendor Address:</strong></span>
+                        </div>
+                        <div t-if="o.picking_type_id.code=='internal' and o.partner_id">
+                            <span><strong>Cliente:</strong></span>
+                        </div>
+                        <div t-if="o.picking_type_id.code=='outgoing' and o.partner_id">
+                            <span><strong>Cliente:</strong></span>
+                        </div>
+                        <div t-if="o.partner_id" name="partner_header">
+                            <div t-field="o.partner_id" t-options="{&quot;widget&quot;: &quot;contact&quot;, &quot;fields&quot;: [&quot;name&quot;, &quot;phone&quot;], &quot;no_marker&quot;: True, &quot;phone_icons&quot;: True}"/>
+                            <p t-if="o.sudo().partner_id.vat"><t t-esc="o.company_id.country_id.vat_label or 'Tax ID'"/>: <span t-field="o.sudo().partner_id.vat"/></p>
+                        </div>
+                    </div>
+                </t>
+                <t t-if="not o.r_in and not o.r_out">
+                    <div class="col-5 offset-1">
+                        <div t-if="o.picking_type_id.code=='incoming' and o.partner_id">
+                            <span><strong>Vendor Address:</strong></span>
+                        </div>
+                        <div t-if="o.picking_type_id.code=='internal' and o.partner_id">
+                            <span><strong>Warehouse Address:</strong></span>
+                        </div>
+                        <div t-if="o.picking_type_id.code=='outgoing' and o.partner_id">
+                            <span><strong>Customer Address:</strong></span>
+                        </div>
+                        <div t-if="o.partner_id" name="partner_header">
+                            <div t-field="o.partner_id" t-options="{&quot;widget&quot;: &quot;contact&quot;, &quot;fields&quot;: [&quot;name&quot;, &quot;phone&quot;], &quot;no_marker&quot;: True, &quot;phone_icons&quot;: True}"/>
+                            <p t-if="o.sudo().partner_id.vat"><t t-esc="o.company_id.country_id.vat_label or 'Tax ID'"/>: <span t-field="o.sudo().partner_id.vat"/></p>
+                        </div>
+                    </div>
+                </t>
+            </xpath>
+            
+
+            
+            <xpath expr="//th[@t-if='o.origin']" position="replace">
+                <t t-if="o.r_in or o.r_out">
+                    <th t-if="o.origin"><strong>Reparación</strong></th>
+                </t>
+                <t t-if="not o.r_in and not o.r_out">
+                    <th t-if="o.origin"><strong>Order</strong></th>
+                </t>
+            </xpath>
+            
+            <xpath expr="//table[2]/thead/tr/th/strong" position="replace">
+                <t t-if="o.r_in or o.r_out">
+                    <strong>Artículo a reparar</strong>
+                </t>
+                <t t-if="not o.r_in and not o.r_out">
+                   <strong>Product</strong>
+                </t>
+            </xpath>
+</template>
+</data>
+</odoo>
+
+

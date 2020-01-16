@@ -67,7 +67,9 @@ class RepairBinhexMod(models.Model):
         index=True, states={'confirmed': [('readonly', True)]},
         help='Choose partner for whom the order will be invoiced and delivered. You can find a partner by its Name, TIN, Email or Internal Reference.'
     )
-    signature = fields.Binary(string="Signature") 
+    signature = fields.Binary(string="Conforme cliente") 
+    signature_out = fields.Binary(string="Conforme cliente") 
+
     
     picking_ids = fields.Many2many(
         'stock.picking', string='Pickings', states={'confirmed': [('readonly', True)]},
@@ -75,6 +77,8 @@ class RepairBinhexMod(models.Model):
     )
     
     picking_notes = fields.Text('Stock picking Notes')
+    estado_articulo = fields.Text('Estado del producto a reparar')
+    motivo = fields.Text('Motivo de la reparación')
 
     picking_order_count = fields.Integer("Number of picking", default=0)
 
@@ -106,15 +110,65 @@ class RepairBinhexMod(models.Model):
             if not self.product_id.type == 'product':
                 raise exceptions.except_orm(_('ERROR'), _('The product has to be storable'))
 
+    @api.onchange('estado_articulo')
+    def onchange_estado_articulo(self):
+        """
+            Change estado_articulo in stock picking in / out.
+		"""
+        _logger.info("DEBUG cambiadas estado")
+        if self.estado_articulo:
+            if self.picking_ids:
+                for p in self.picking_ids:
+                    p.write({'estado_articulo':self.estado_articulo})
+
+    @api.onchange('motivo')
+    def onchange_motivo(self):
+        """
+            Change motivo in stock picking in / out.
+		"""
+        _logger.info("DEBUG cambiadas motivo")
+        if self.motivo:
+            if self.picking_ids:
+                _logger.info("DEBUG picking_ids " + str(self.picking_ids))
+                for p in self.picking_ids:
+                    p.write({'motivo':self.motivo})
+                    _logger.info("DEBUG motivo " + str(p.motivo))
+                    
+
+    @api.onchange('picking_notes')
+    def onchange_picking_notes(self):
+        """
+            Change picking_notes in stock picking in / out.
+		"""
+        _logger.info("DEBUG cambiadas notas")
+        if self.picking_notes:
+            if self.picking_ids:
+                for p in self.picking_ids:
+                    p.write({'note':self.picking_notes})
+
     @api.onchange('signature')
     def onchange_signature(self):
         """
-            Change signature in stock picking.
+            Change signature in stock picking in.
 		"""
         if self.signature:
             if self.picking_ids:
+                operation_type = self.env['stock.picking.type'].search([('name', 'like', 'Reparation in')])
                 for p in self.picking_ids:
-                    p.write({'signature':self.signature})
+                    if(p.picking_type_id == operation_type):
+                        p.write({'signature':self.signature})
+
+    @api.onchange('signature_out')
+    def onchange_signature_out(self):
+        """
+            Change signature in stock picking out.
+		"""
+        if self.signature:
+            if self.picking_ids:
+                operation_type = self.env['stock.picking.type'].search([('name', 'like', 'Reparation out')])
+                for p in self.picking_ids:
+                    if(p.picking_type_id == operation_type):
+                        p.write({'signature':self.signature_out})
 
     def action_validate(self):
         """
@@ -188,16 +242,23 @@ class RepairBinhexMod(models.Model):
         if float_compare(available_qty_owner, self.product_qty, precision_digits=precision) >= 0:
             owner_id = self.partner_id.id
         vals = {
-            'signature' : self.signature,
+            'signature' : self.signature if operation == 'Reparation in' else self.signature_out,
             'partner_id' : self.partner_id.id,
             'picking_type_id' : operation_type.id,
             'location_id' : operation_type.default_location_src_id.id,
             'location_dest_id' : operation_type.default_location_dest_id.id,
             'origin' : self.name,
             'move_type' : 'one',
-            'note' : self.picking_notes
+            'note' : self.picking_notes,
+            'estado_articulo' : self.estado_articulo,
+            'motivo' : self.motivo
 
         }
+        if operation == 'Reparation in':
+            vals['r_in'] = True
+        else:
+            vals['r_out'] = True
+
         pick = self.env['stock.picking'].create(vals)
         move = self.env['stock.move'].create ({
                 'picking_id' : pick.id,
@@ -262,4 +323,8 @@ class RepairBinhexMod(models.Model):
 class SyockPinkingBinhexMod(models.Model):
     _inherit = 'stock.picking'
     
+    r_in = fields.Boolean(string="its r_in", default=False) 
+    r_out = fields.Boolean(string="its r_out", default=False) 
     signature = fields.Binary(string="Signature") 
+    estado_articulo = fields.Text('Estado del producto a reparar')
+    motivo = fields.Text('Motivo de la reparación')

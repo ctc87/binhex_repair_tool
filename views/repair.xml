@@ -13,6 +13,8 @@
                 </xpath>
 
                 <xpath expr="//field[@name='quotation_notes']" position="after">
+                    <field name="estado_articulo" placeholder="Escribe el estado del articulo..."/>
+                    <field name="motivo" placeholder="Escribe el motivo de la reparación..."/>
                     <field name="picking_notes" placeholder="Add stock picking notes..."/>
                 </xpath>
 
@@ -24,6 +26,7 @@
                     <page string="Signature">
                         <field name="picking_ids" attrs="{'invisible': True}"/>
                         <field name="signature" widget="signature" />
+                        <field name="signature_out" widget="signature" />
                     </page>
                 </xpath>
             </data>
